@@ -13,7 +13,7 @@
     </style>
 </head>
 <body>
-    <h2>Upload and Crop Your Image (13:18 Ratio)</h2>
+    <h2>Upload and Crop Your Image (276:354 Ratio)</h2>
     <input type="file" id="imageInput" accept="image/*">
     <br><br>
     <div>
@@ -32,7 +32,7 @@
                     document.getElementById('imagePreview').style.display = 'block';
                     if (cropper) cropper.destroy();
                     cropper = new Cropper(document.getElementById('imagePreview'), {
-                        aspectRatio: 13 / 18,
+                        aspectRatio: 276 / 354,
                         viewMode: 1
                     });
                     document.getElementById('cropButton').style.display = 'block';
