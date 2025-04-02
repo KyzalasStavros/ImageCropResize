@@ -1,11 +1,11 @@
 # Image Crop & Resize Tool
 
 ## Description
-This is a simple web-based tool that allows users to upload an image, crop it to a **13:18 aspect ratio**, and resize it to **276 × 354 pixels**. The processed image is then converted to **JPG format**, set to **96 DPI**, and can be renamed before downloading.
+This is a simple web-based tool that allows users to upload an image, crop it to a **276:354 aspect ratio**, and resize it to **276 × 354 pixels**. The processed image is then converted to **JPG format**, set to **96 DPI**, and can be renamed before downloading.
 
 ## Features
 ✅ Upload an image (any format)
-✅ Crop to **13:18 aspect ratio**
+✅ Crop to **276:354 aspect ratio**
 ✅ Resize to **276 × 354 pixels**
 ✅ Convert to **JPG**
 ✅ Set **96 DPI** automatically
