@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -34,6 +34,133 @@
                     cropper = new Cropper(document.getElementById('imagePreview'), {
                         aspectRatio: 276 / 354,
                         viewMode: 1
+                    });
+                    document.getElementById('cropButton').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('cropButton').addEventListener('click', function() {
+            const canvas = cropper.getCroppedCanvas({ width: 276, height: 354 });
+            const link = document.createElement('a');
+            link.href = canvas.toDataURL('image/jpeg', 1.0);
+            link.download = prompt("Enter file name", "cropped_image") + ".jpg";
+            link.click();
+        });
+    </script>
+</body>
+</html>
+ -->
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Crop & Resize Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            background-color: #0056b3;
+        }
+
+        img {
+            max-width: 90%;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #preview-container {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload and Crop Your Image (276:354 Ratio)</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="preview-container">
+        <img id="imagePreview" style="display: none;">
+    </div>
+    <button id="cropButton" style="display: none;">Crop & Download</button>
+    
+    <script>
+        let cropper;
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('preview-container').style.display = 'flex';
+                    if (cropper) cropper.destroy();
+                    cropper = new Cropper(document.getElementById('imagePreview'), {
+                        aspectRatio: 276 / 354,
+                        viewMode: 1,
+                        responsive: true,
+                        autoCropArea: 0.8
                     });
                     document.getElementById('cropButton').style.display = 'block';
                 };
