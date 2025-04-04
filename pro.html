@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="geia-sou-niko" content="🚀">
+    <title>Image Crop & Resize Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            margin: 20px 0;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            background-color: #0056b3;
+        }
+
+        img {
+            max-width: 90%;
+            margin: 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #preview-container {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            h2 {
+                font-size: 1.2rem;
+            }
+
+            button {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload and Crop Your Image (276:354 Ratio)</h2>
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="preview-container">
+        <img id="imagePreview" style="display: none;">
+    </div>
+    <button id="cropButton" style="display: none; margin:30px 0;">Crop & Download</button>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let cropper;
+
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.getElementById('imagePreview');
+                    img.src = e.target.result;
+                    img.style.display = 'block';
+                    document.getElementById('preview-container').style.display = 'flex';
+        
+                    // Restrict the image preview size to fit within 80% of the screen
+                    const maxWidth = window.innerWidth * 0.8;
+                    const maxHeight = window.innerHeight * 0.8;
+                    img.style.maxWidth = maxWidth + "px";
+                    img.style.maxHeight = maxHeight + "px";
+        
+                    // Destroy previous Cropper instance if exists
+                    if (cropper) cropper.destroy();
+        
+                    // Initialize Cropper.js
+                    cropper = new Cropper(img, {
+                        aspectRatio: 276 / 354,
+                        viewMode: 1,
+                        responsive: true,
+                        autoCropArea: 0.8
+                    });
+        
+                    document.getElementById('cropButton').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.getElementById('cropButton').addEventListener('click', async function() {
+            const dpi = 300; // Desired DPI
+            const scaleFactor = dpi / 96; // Adjust scale since default is 96 DPI
+
+            // Create a high-quality canvas
+            const canvas = cropper.getCroppedCanvas({
+                width: 276 * scaleFactor,
+                height: 354 * scaleFactor
+            });
+
+            // Downscale the image for better sharpness
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = 276;
+            finalCanvas.height = 354;
+            const ctx = finalCanvas.getContext('2d');
+            ctx.drawImage(canvas, 0, 0, 276, 354);
+
+            // Convert the canvas to a data URL
+            const imageData = finalCanvas.toDataURL('image/jpeg', 1.0);
+
+            // Use jsPDF to embed the image with DPI metadata
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [276, 354]
+            });
+
+            // Add the image to the PDF
+            pdf.addImage(imageData, 'JPEG', 0, 0, 276, 354, undefined, 'FAST');
+
+            // Export the image as a file
+            const fileName = prompt("Enter file name", "cropped_image") + ".jpg";
+            const pdfBlob = pdf.output('blob');
+
+            // Convert the PDF back to an image with DPI metadata
+            const pdfUrl = URL.createObjectURL(pdfBlob);
+            const img = new Image();
+            img.src = pdfUrl;
+            img.onload = function () {
+                const exportCanvas = document.createElement('canvas');
+                exportCanvas.width = img.width;
+                exportCanvas.height = img.height;
+                const exportCtx = exportCanvas.getContext('2d');
+                exportCtx.drawImage(img, 0, 0);
+
+                // Download the final image
+                const link = document.createElement('a');
+                link.href = exportCanvas.toDataURL('image/jpeg', 1.0);
+                link.download = fileName;
+                link.click();
+            };
+        });
+    </script>
+</body>
+</html>
