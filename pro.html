@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="geia-sou-niko" content="🚀">
-    <title>Image Crop & Resize Tool</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+    <title>Crop and Save Image with DPI using Fabric.js</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.5.0/fabric.min.js"></script>
     <style>
         body {
@@ -41,13 +40,6 @@
             background-color: #0056b3;
         }
 
-        img {
-            max-width: 90%;
-            margin: 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
         button {
             padding: 10px 20px;
             background-color: #28a745;
@@ -63,103 +55,109 @@
             background-color: #218838;
         }
 
-        #preview-container {
-            display: none;
+        #canvasContainer {
             margin-top: 20px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
+            display: none;
         }
 
-        /* Hide Fabric canvas (used for image manipulation) */
-        #fabricCanvas {
-            display: none;
+        canvas {
+            border: 1px solid #ccc;
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
     <h2>Upload and Crop Your Image</h2>
     <input type="file" id="imageInput" accept="image/*">
-    <div id="preview-container">
-        <img id="imagePreview" style="display: none;">
+    <div id="canvasContainer">
+        <canvas id="fabricCanvas"></canvas>
     </div>
-    <button id="cropButton" style="display: none; margin:30px 0;">Crop & Save with DPI</button>
+    <button id="cropButton" style="display: none; margin-top: 20px;">Crop & Save with DPI</button>
     
     <script>
-        let cropper;
-        let fabricCanvas;
+        let canvas;
+        let fabricImage;
 
-        // Initialize the fabric.js canvas
-        function initFabricCanvas(width, height) {
-            fabricCanvas = new fabric.Canvas('fabricCanvas', {
-                width: width,
-                height: height
+        // Initialize Fabric.js Canvas
+        function initFabricCanvas() {
+            canvas = new fabric.Canvas('fabricCanvas', {
+                backgroundColor: '#f4f4f9',
+                selection: false,
             });
         }
 
-        // Event listener for file input to load image and initialize Cropper.js
+        // Event listener for file input to load image into Fabric.js
         document.getElementById('imageInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.getElementById('imagePreview');
-                    img.src = e.target.result;
-                    img.style.display = 'block';
-                    document.getElementById('preview-container').style.display = 'flex';
-        
-                    // Destroy previous Cropper instance if exists
-                    if (cropper) cropper.destroy();
-        
-                    // Initialize Cropper.js
-                    cropper = new Cropper(img, {
-                        aspectRatio: 276 / 354,
-                        viewMode: 1,
-                        responsive: true,
-                        autoCropArea: 0.8
+                    initFabricCanvas();  // Initialize the Fabric.js canvas
+                    fabric.Image.fromURL(e.target.result, function(img) {
+                        fabricImage = img;
+                        canvas.setBackgroundImage(fabricImage, canvas.renderAll.bind(canvas));
+
+                        // Scale the image to fit within the canvas
+                        fabricImage.scaleToWidth(canvas.width);
+                        fabricImage.scaleToHeight(canvas.height);
+
+                        // Show canvas and crop button
+                        document.getElementById('canvasContainer').style.display = 'block';
+                        document.getElementById('cropButton').style.display = 'block';
                     });
-        
-                    document.getElementById('cropButton').style.display = 'block';
                 };
                 reader.readAsDataURL(file);
             }
         });
-        
-        // Event listener for the crop button
+
+        // Event listener for crop button
         document.getElementById('cropButton').addEventListener('click', function() {
-            const dpi = 96;  // Set desired DPI
-            const scaleFactor = dpi / 72; // Adjust scale since default is 72 DPI
-
-            // Get the cropped canvas from Cropper.js
-            const croppedCanvas = cropper.getCroppedCanvas({
-                width: 276 * scaleFactor,
-                height: 354 * scaleFactor
+            // Define the crop area (you can adjust this as needed)
+            const cropWidth = 276;
+            const cropHeight = 354;
+            
+            // Create a rectangle for cropping
+            const cropArea = new fabric.Rect({
+                left: 50,  // x-coordinate of the crop area
+                top: 50,   // y-coordinate of the crop area
+                width: cropWidth,
+                height: cropHeight,
+                fill: 'transparent',
+                stroke: 'red',
+                strokeWidth: 2,
             });
 
-            // Now use Fabric.js to manipulate this canvas
-            initFabricCanvas(276 * scaleFactor, 354 * scaleFactor);  // Set the canvas size based on the cropped image
+            canvas.add(cropArea);
 
-            fabric.Image.fromURL(croppedCanvas.toDataURL(), function(img) {
-                fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
-
-                // After setting the image in Fabric.js, save it with DPI
-                const finalImageData = fabricCanvas.toDataURL({
-                    format: 'jpeg',
-                    quality: 1.0,
-                    multiplier: dpi / 72  // Set the DPI explicitly while exporting
-                });
-
-                // Download the final image
-                const link = document.createElement('a');
-                link.href = finalImageData;
-                link.download = prompt("Enter file name", "cropped_image") + ".jpg";
-                link.click();
+            // Crop the image within the defined area
+            const croppedImage = new fabric.Image(fabricImage.getElement(), {
+                left: cropArea.left,
+                top: cropArea.top,
+                width: cropArea.width,
+                height: cropArea.height,
             });
+
+            canvas.clear();  // Clear the canvas
+            canvas.setBackgroundImage(croppedImage, canvas.renderAll.bind(canvas));  // Set the cropped image as background
+
+            // Now, export the image with the desired DPI (96 DPI in this case)
+            const dpi = 96;
+            const scaleFactor = dpi / 72;  // Adjust for DPI (default is 72 DPI)
+
+            // Export the image as a data URL with the desired DPI
+            const finalImageData = canvas.toDataURL({
+                format: 'jpeg',
+                quality: 1.0,
+                multiplier: scaleFactor  // Adjust multiplier for DPI scaling
+            });
+
+            // Trigger the download
+            const link = document.createElement('a');
+            link.href = finalImageData;
+            link.download = prompt("Enter file name", "cropped_image") + ".jpg";
+            link.click();
         });
     </script>
-
-    <!-- Hidden Canvas for Fabric.js manipulation -->
-    <canvas id="fabricCanvas"></canvas>
-
 </body>
 </html>
