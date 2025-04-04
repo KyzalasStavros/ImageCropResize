@@ -70,6 +70,11 @@
             display: flex;
             justify-content: center;
         }
+
+        /* Hide Fabric canvas (used for image manipulation) */
+        #fabricCanvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -82,7 +87,17 @@
     
     <script>
         let cropper;
+        let fabricCanvas;
 
+        // Initialize the fabric.js canvas
+        function initFabricCanvas(width, height) {
+            fabricCanvas = new fabric.Canvas('fabricCanvas', {
+                width: width,
+                height: height
+            });
+        }
+
+        // Event listener for file input to load image and initialize Cropper.js
         document.getElementById('imageInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
@@ -110,6 +125,7 @@
             }
         });
         
+        // Event listener for the crop button
         document.getElementById('cropButton').addEventListener('click', function() {
             const dpi = 96;  // Set desired DPI
             const scaleFactor = dpi / 72; // Adjust scale since default is 72 DPI
@@ -121,10 +137,7 @@
             });
 
             // Now use Fabric.js to manipulate this canvas
-            const fabricCanvas = new fabric.Canvas('fabricCanvas', {
-                width: 276 * scaleFactor,
-                height: 354 * scaleFactor
-            });
+            initFabricCanvas(276 * scaleFactor, 354 * scaleFactor);  // Set the canvas size based on the cropped image
 
             fabric.Image.fromURL(croppedCanvas.toDataURL(), function(img) {
                 fabricCanvas.setBackgroundImage(img, fabricCanvas.renderAll.bind(fabricCanvas));
@@ -146,7 +159,7 @@
     </script>
 
     <!-- Hidden Canvas for Fabric.js manipulation -->
-    <canvas id="fabricCanvas" style="display: none;"></canvas>
+    <canvas id="fabricCanvas"></canvas>
 
 </body>
 </html>
