@@ -147,7 +147,7 @@
             // Convert to JPG and prompt for filename
             const link = document.createElement('a');
             link.href = finalCanvas.toDataURL('image/jpeg', 1.0);
-            link.download = prompt("Οι αριθμοί του πρώτου μέρους του Ε.Α.Μ.Ε. χωρίς το γράμμα Ε, π.χ. 58195", "") + ".jpg";
+            link.download = prompt("Εισάγετε τους αριθμούς του πρώτου μέρους του Ε.Α.Μ.Ε. χωρίς το γράμμα Ε, π.χ. 58195", "") + ".jpg";
             link.click();
         });
     </script>
